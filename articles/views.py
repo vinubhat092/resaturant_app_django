@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
-from .forms import ArticleForm  
+from .forms import ArticleForm 
+from django.http import Http404
 
 # Create your views here.
 
@@ -8,21 +9,11 @@ from .models import Articles
 
 @login_required
 def article_search_view(request):
-    # print(dir(request))
-    query_dict = request.GET #This is a dictionery
-    # print(query_dict)
-    query = query_dict.get("q")
-    article_object = None
-    try:
-        query = int(query_dict.get("q"))
-    except:
-        query = None
-
-    if query is not None:
-        article_object = Articles.objects.get(id=query)
-
+    # print("here",dir(request))
+    query = request.GET.get('q') 
+    qs = Articles.objects.search(query=query) #paasing the keyword argument for models
     context={
-        "object":article_object,
+        "object_list":qs
     }
     return render(request,"articles/search.html",context=context)
 
@@ -36,6 +27,8 @@ def article_create_view(request):
     if form.is_valid():
         article_object = form.save()
         context['form'] = ArticleForm()
+        # return redirect("article-detail",slug=article_object.slug)
+        return redirect(article_object.get_absolute_url())
         # title = form.cleaned_data.get("title")
         # content = form.cleaned_data.get("content")
         # print(title,content)
@@ -64,11 +57,18 @@ def article_create_view(request):
 #     return render(request, "articles/create.html",context=context)
 
 
-def article_detail_view(request,id=None):
+def article_detail_view(request,slug=None):
     article_obj=None
-    if id is not None:
-        article_obj = Articles.objects.get(id=id) 
+    if slug is not None:
+        try:
+            article_obj = Articles.objects.get(slug=slug)
+        except Articles.DoesNotExist:
+            raise Http404 
+        except Articles.MultipleObjectsReturned:
+            article_obj = Articles.objects.filter(slug=slug).first()
+        except:
+            raise Http404
     context ={
-        "objects":article_obj, 
+        "object":article_obj, 
         }
     return render(request, "articles/detail.html",context=context)
