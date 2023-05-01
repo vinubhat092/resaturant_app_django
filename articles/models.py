@@ -4,7 +4,10 @@ from django.db.models.signals import pre_save,post_save
 from .utils import slugify_instance_title
 from django.urls import reverse
 from django.db.models import Q
+from django.conf import settings
 # Create your models here.
+
+User = settings.AUTH_USER_MODEL   #now we can use User instead of "auth.User" in Articles class
 
 class ArticleQuerySet(models.QuerySet):
     def search(self,query=None):
@@ -23,7 +26,7 @@ class ArticleManager(models.Manager):
 
 
 class Articles(models.Model):
-    user = models.ForeignKey("auth.User", blank=True, null=True, on_delete = models.SET_NULL)
+    user = models.ForeignKey("auth.User", blank=True, null=True, on_delete = models.SET_NULL)   #auth is the default django user model
     title = models.CharField(max_length=120)
     slug = models.SlugField(unique=True,blank=True,null=True)
     content = models.TextField()

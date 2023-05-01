@@ -62,6 +62,7 @@ def article_detail_view(request,slug=None):
     if slug is not None:
         try:
             article_obj = Articles.objects.get(slug=slug)
+            # print("check",article_obj.get("user"))
         except Articles.DoesNotExist:
             raise Http404 
         except Articles.MultipleObjectsReturned:
@@ -71,4 +72,5 @@ def article_detail_view(request,slug=None):
     context ={
         "object":article_obj, 
         }
+    print("context",context)
     return render(request, "articles/detail.html",context=context)
